@@ -1,77 +1,34 @@
-const mongoose = require("mongoose");
+require('dotenv').config();
+const mongoose = require('mongoose');
 
-const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
+/**
+ * Connect to MongoDB and register models
+ */
+const connectDB = async () => {
+  const mongoURI = process.env.MONGODB_URI ;
 
-const userSchema = new Schema({
-    _id: ObjectId,
-    name: String,
-    email: String,
-    password: String (hashed),
-    role: String, // 'customer' | 'agent' | 'admin'
-    contact: {
-      phone: String,
-      address: String
-    },
-    preferences: Object,
-    bookings: [ObjectId], // references Booking
-    createdAt: Date,
-    updatedAt: Date,
-    isActive: Boolean
-  })
+  try {
+    mongoose.set('strictQuery', true);
 
-const packageSchema = new Schema({
-    _id: ObjectId,
-    name: String,
-    description: String,
-    destinations: [String],
-    images: [String],
-    pricing: [{
-      type: String, // 'hotel' | 'flight' | 'train'
-      rate: Number,
-      currency: String
-    }],
-    inventory: Number,
-    customizableOptions: Object,
-    reviews: [ObjectId], // references Review
-    createdBy: ObjectId, // references User (admin/agent)
-    createdAt: Date,
-    updatedAt: Date
-  })
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
 
-  const bookingSchema = new Schema({
-    _id: ObjectId,
-    user: ObjectId, // references User
-    agent: ObjectId, // references User (optional)
-    package: ObjectId, // references Package
-    status: String, // 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed'
-    travelDates: {
-      start: Date,
-      end: Date
-    },
-    payment: {
-      status: String, // 'pending' | 'paid' | 'failed'
-      razorpayOrderId: String,
-      razorpayPaymentId: String,
-      amount: Number,
-      currency: String
-    },
-    createdAt: Date,
-    updatedAt: Date
-  })
+    console.log('✅ MongoDB connected');
 
-  const reviewSchema = new Schema({
-    _id: ObjectId,
-    user: ObjectId, // references User
-    package: ObjectId, // references Package
-    rating: Number,
-    comment: String,
-    createdAt: Date
-  })
+    // Optionally preload models so they are registered once on startup
+    // Only require models that exist to avoid runtime errors
+    try { require('./models/User'); } catch (_) {}
+    try { require('./models/Package'); } catch (_) {}
+    try { require('./models/Booking'); } catch (_) {}
+    try { require('./models/Review'); } catch (_) {}
+    try { require('./models/TransportOption'); } catch (_) {}
 
-  module.exports = {
-    userSchema,
-    packageSchema,
-    bookingSchema,
-    reviewSchema
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error.message);
+    process.exit(1);
   }
+};
+
+module.exports = connectDB;

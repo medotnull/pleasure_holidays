@@ -1,9 +1,9 @@
 const express = require('express');
 const Booking = require('../models/Booking');
 const Package = require('../models/Package');
-const { authenticate, customerOrAgentOrAdmin, adminOnly } = require('../middleware/auth');
-const { asyncHandler } = require('../middleware/errorHandler');
-const { paymentLimiter } = require('../middleware/rateLimiter');
+const { authenticate, customerOrAgentOrAdmin, adminOnly } = require('../middlewares/auth');
+const { asyncHandler } = require('../middlewares/errorHandler');
+const { paymentLimiter } = require('../middlewares/rateLimiter');
 const Razorpay = require('razorpay');
 
 const router = express.Router();

@@ -1,7 +1,15 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+const { authenticate, generateToken, adminOnly } = require('../middlewares/auth');
+const { asyncHandler } = require('../middlewares/errorHandler');
+const { authLimiter } = require('../middlewares/rateLimiter');
 
 const router = express.Router();
 
+// @route   POST /api/auth/register
+// @desc    Register a new user
+// @access  Public
 router.post('/register', authLimiter, asyncHandler(async (req, res) => {
   const { firstName, lastName, email, password, phone, role = 'customer' } = req.body;
 
@@ -14,7 +22,7 @@ router.post('/register', authLimiter, asyncHandler(async (req, res) => {
     });
   }
 
-    // Create new user
+  // Create new user
   const user = await User.create({
     firstName,
     lastName,
@@ -24,8 +32,8 @@ router.post('/register', authLimiter, asyncHandler(async (req, res) => {
     role
   });
 
-//Generate JWT token 
-    const token = generateToken(user._id);
+  // Generate token
+  const token = generateToken(user._id);
 
   res.status(201).json({
     success: true,
@@ -59,7 +67,7 @@ router.post('/login', authLimiter, asyncHandler(async (req, res) => {
     });
   }
 
-    // Check if user is active
+  // Check if user is active
   if (!user.isActive) {
     return res.status(401).json({
       success: false,
@@ -96,6 +104,18 @@ router.post('/login', authLimiter, asyncHandler(async (req, res) => {
         phone: user.phone
       },
       token
+    }
+  });
+}));
+
+// @route   GET /api/auth/me
+// @desc    Get current user profile
+// @access  Private
+router.get('/me', authenticate, asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      user: req.user
     }
   });
 }));

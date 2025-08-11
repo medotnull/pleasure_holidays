@@ -5,23 +5,33 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const connectDB = require('./db');
-const { errorHandler, notFound } = require('./middleware/errorHandler');
-const { apiLimiter } = require('./middleware/rateLimiter');
 
-// instance of express app
-const app = express(); 
-
-// Connect to MongoDB
-connectDB();
+//Importing middlewares
+const { authenticate, adminOnly } = require('./middlewares/auth');
+const { errorHandler, notFound } = require('./middlewares/errorHandler');
+const {
+  apiLimiter,
+  authLimiter,
+  paymentLimiter,
+  adminLimiter,
+  uploadLimiter
+} = require('./middlewares/rateLimiter');
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const packageRoutes = require('./routes/packages');
 const bookingRoutes = require('./routes/bookings');
 const adminRoutes = require('./routes/admin');
-//const userRoutes = require('./routes/user');
-//const transportOptionRoutes = require('./routes/transport_option');
-//const travelPackageRoutes = require('./routes/travel_package');
+const userRoutes = require('./routes/user');
+const TransportOption = require('./routes/transport_option');
+
+
+
+// instance of express app
+const app = express(); 
+
+// Connect to MongoDB
+connectDB();
 
 // Security middleware
 app.use(helmet());
@@ -45,5 +55,9 @@ app.use('/api/', apiLimiter);
 app.listen(3000, ()=> {
     console.log("Server is running at port 3000")
 })
+
+// Error handling
+
+
 
 module.exports = app;
